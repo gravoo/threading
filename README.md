@@ -1,3 +1,3 @@
 # Thread basic
-[] Each thread accepts waiting time
-[] In background each thread prints its own loading table and how much it left to finishkrece
+I want that thread accepts how long it shall wait
+In constant period of time it shall update it progress bar and print the output on the screen
