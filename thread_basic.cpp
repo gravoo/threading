@@ -1,3 +1,4 @@
+#include <array>
 #include <chrono>
 #include <iostream>
 #include <sstream>
@@ -11,45 +12,43 @@ int getTerminalWidth() {
   ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
   return w.ws_col;
 }
-
-void loading(int sleep_time) {
+void print_completion_bar(float progress, std::string id) {
   int width = getTerminalWidth();
-  int refresh_rate = 1;
-  int samples = sleep_time / refresh_rate;
-  int iteration = 0;
-  std::string start = "\033[H0%";
+
+  std::string start = "id: " + id + " 0%";
   std::string stop = "100%\n";
   std::string marker = "#";
   std::stringstream output;
   output << start;
   int line_length = width - start.length() - stop.length();
-  for (int i = 0; i < line_length; i++) {
+  int progress_bar = progress * line_length;
+  for (int i = 0; i < progress_bar; i++) {
+    output << marker;
+  }
+  for (int i = progress_bar; i < line_length; i++) {
     output << " ";
   }
   output << stop;
   std::cout << output.str();
-  output.clear();
-  output.str("");
-  std::this_thread::sleep_for(std::chrono::seconds(refresh_rate));
-
-  const int progress_increment = line_length / samples;
-  while (iteration < samples) {
-    output.clear();
-    output.str("");
-    output << start;
-    // for (int i = 0; i < progress_increment * iteration; i++) {
-    //   output << marker;
-    // }
-    for (int i = output.str().size(); i < line_length; i++) {
-      output << "B";
-    }
-    ++iteration;
-    std::cout << output.str();
-    output << stop;
-    std::this_thread::sleep_for(std::chrono::seconds(refresh_rate));
+}
+void super_heavy_task(int time_to_complete_task) {
+  std::this_thread::sleep_for(std::chrono::seconds(time_to_complete_task));
+}
+void loading(int time_of_single_task, int count_of_tasks, std::string id) {
+  for (int i{0}; i <= count_of_tasks; i++) {
+    print_completion_bar(i / static_cast<float>(count_of_tasks), id);
+    super_heavy_task(time_of_single_task);
   }
 }
 int main() {
-  std::cout << "\033[H";
-  loading(5);
+  std::cout << "\n";
+  std::array<std::thread, 4> threads;
+  for (auto i{0}; i < threads.size(); i++) {
+    threads[i] = std::thread(loading, i + 1, 500, std::to_string(i));
+  }
+  for (auto &t : threads) {
+    if (t.joinable()) {
+      t.join();
+    }
+  }
 }
