@@ -6,7 +6,7 @@ compare with atomic
 simulate race condition
 Change std::thread into std::async
 Encapsulate
-
+Agregation flag over all bool's
 ## LL
 Type of computed value depend on its arguments, not return value
 ````
@@ -15,3 +15,4 @@ int / float -> float
 float / int -> float
 ````
 Each thread has its own stack, but it does share memory
+std::map has std::pairs with MEMBERS first, second

@@ -1,12 +1,17 @@
 #include <array>
 #include <chrono>
 #include <iostream>
+#include <map>
+#include <mutex>
 #include <sstream>
 #include <sys/ioctl.h>
 #include <thread>
 #include <unistd.h>
 #include <vector>
 
+std::mutex g_pages_mutex;
+std::map<std::string, bool> task_completed;
+bool stop_printing{false};
 int getTerminalWidth() {
   struct winsize w;
   ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
@@ -39,16 +44,40 @@ void loading(int time_of_single_task, int count_of_tasks, std::string id) {
     print_completion_bar(i / static_cast<float>(count_of_tasks), id);
     super_heavy_task(time_of_single_task);
   }
+  g_pages_mutex.lock();
+  task_completed[id] = true;
+  g_pages_mutex.unlock();
+}
+void status_printer() {
+
+  bool all_tasks_finished{false};
+  while (!stop_printing) {
+    g_pages_mutex.lock();
+    for (auto &x : task_completed) {
+      if (x.second) {
+        std::stringstream ss;
+        ss << "task:" << x.first << " " << "finished \n";
+        std::cout << ss.str();
+        x.second = false;
+      }
+    }
+    g_pages_mutex.unlock();
+  }
 }
 int main() {
   std::cout << "\n";
-  std::array<std::thread, 4> threads;
+  std::array<std::thread, 2> threads;
+  std::thread status_printer_thread;
   for (auto i{0}; i < threads.size(); i++) {
-    threads[i] = std::thread(loading, i + 1, 500, std::to_string(i));
+    task_completed[std::to_string(i)] = false;
+    threads[i] = std::thread(loading, i + 1, 1, std::to_string(i));
   }
+  status_printer_thread = std::thread(status_printer);
   for (auto &t : threads) {
     if (t.joinable()) {
       t.join();
     }
   }
+  stop_printing = true;
+  status_printer_thread.join();
 }
