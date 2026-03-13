@@ -16,3 +16,5 @@ float / int -> float
 ````
 Each thread has its own stack, but it does share memory
 std::map has std::pairs with MEMBERS first, second
+
+Race condition might happend when two or more threads are accessing the same variable
