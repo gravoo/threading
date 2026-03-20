@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 project(threading)
-
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 add_executable(threading_exe thread_basic.cpp)
 add_executable(mutexes_exe mutexes.cpp)
+add_executable(jthread_exe jthread_basic.cpp)
+add_executable(can_main_lock_on_mutex can_main_lock_on_mutex.cpp)
+add_executable(std_ref_in_thread std_ref_in_thread.cpp)

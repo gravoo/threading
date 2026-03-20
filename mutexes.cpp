@@ -3,35 +3,32 @@
 #include <mutex>
 #include <sstream>
 #include <thread>
-
+#include <vector>
+struct Product {
+  std::uint32_t product_id;
+};
 std::mutex g_mutex;
-int g_int{0};
+std::vector<Product> products;
+
 void consumer(std::string consumer_id) {
   std::cout << "Start consumer thread\n";
   while (true) {
     std::lock_guard<std::mutex> lock(g_mutex);
-    if (g_int > 0) {
+    if (!products.empty()) {
       std::stringstream out;
       out << "Product consumed by:" << consumer_id << "\n";
-      g_int -= 1;
       std::cout << out.str();
+      products.pop_back();
     }
   }
 }
+std::uint32_t product_id_generator() { return 5; }
+
 void producer() {
   std::cout << "Start producer thread\n";
-  int products{0};
   while (true) {
-    if (g_int == 0) {
-      std::stringstream out;
-      products++;
-      out << products << " produced \n";
-      std::cout << out.str();
-      g_int = products;
-    } else {
-      std::cout << "Products not yet consumed\n";
-      std::this_thread::sleep_for(std::chrono::seconds(5));
-    }
+    products.push_back(Product{product_id_generator()});
+    std::this_thread::sleep_for(std::chrono::seconds(5));
   }
 }
 int main() {
